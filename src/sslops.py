@@ -296,10 +296,6 @@ class SslOps:
             # Add the key usage to the certificate
             builder = self.__add_key_usage__(builder=builder, cert_type=cert_type)
 
-            # Add the SANs to the certificate if they exist
-            if san_list:
-                builder = builder.add_extension(
-                    SubjectAlternativeName(san_list), critical=False)
             # Sign the certificate using the private key
             signed_cert = builder.sign(private_key, sig_algorithm)
 
