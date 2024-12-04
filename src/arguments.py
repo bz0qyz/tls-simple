@@ -109,6 +109,14 @@ AllArguments = {
             "envvar": "SS_CERT_SUBJECT",
             "help": "Certificate Subject string."
         },
+        "email": {
+            "args": ['-ce', '--cert-email'],
+            "type": str,
+            "default": None,
+            "metavar": "admin@domain.com",
+            "envvar": "SS_CERT_EMAIL",
+            "help": "Email address for the certificate."
+        },
         "san": {
             "args": ['--cert-san'],
             "type": str,
@@ -169,6 +177,14 @@ AllArguments = {
             "default": "/CN=Example CA",
             "envvar": "SS_CA_CERT_SUBJECT",
             "help": "Certificate Subject string."
+        },
+        "email": {
+            "args": ['-cae', '--ca-email'],
+            "type": str,
+            "default": None,
+            "metavar": "admin@domain.com",
+            "envvar": "SS_CERT_EMAIL",
+            "help": "Email address for the certificate."
         },
         "sig_algorithm": {
             "args": ['--ca-sig-algo'],

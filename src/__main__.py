@@ -32,6 +32,7 @@ if config.action == "ca-cert":
     ca_cert_file = ssl_ops.create_cert(
         filename=config.ca.cert_filename,
         cert_subject=config.ca.subject,
+        cert_email=config.ca.email,
         cert_days=config.ca.days,
         sig_algorithm=config.ca.sig_algorithm,
         cert_type="ca"
@@ -54,6 +55,7 @@ if config.main.password_files:
 crt_cert_file = ssl_ops.create_cert(
     filename=config.cert.cert_filename,
     cert_subject=config.cert.subject,
+    cert_email=config.cert.email,
     cert_days=config.cert.days,
     sig_algorithm=config.cert.sig_algorithm,
     cert_san=config.cert.san

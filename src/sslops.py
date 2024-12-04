@@ -6,7 +6,8 @@ from cryptography.hazmat.primitives.asymmetric import ec, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography import x509
-from cryptography.x509 import NameOID, CertificateBuilder, BasicConstraints, CertificateSigningRequestBuilder
+from cryptography.x509 import CertificateBuilder, BasicConstraints, CertificateSigningRequestBuilder
+from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 from cryptography.x509 import Name, NameAttribute, SubjectAlternativeName
 
 
@@ -37,7 +38,7 @@ class SslOps:
         self.pass_files = pass_files
         self.name = None       # Created from the certificate's common name
         self.ca_key = None     # CA Key Placeholder
-        self.ca_key_pw = None  # CA Key Password Placeholder 
+        self.ca_key_pw = None  # CA Key Password Placeholder
         self.ca_cert = None    # CA Certificate Placeholder
         self.crt_key = None    # Private Key Placeholder
         self.crt_key_pw = None # Private Key Password Placeholder
@@ -72,9 +73,12 @@ class SslOps:
 
         return private_key_pem
 
-    def __parse_subject__(self, subject: str):
+    def __parse_subject__(self, subject: str, email: str = None):
         """ Parse a Subject line and create a cryptography subject object """
         subject_attributes = []
+        if email:
+            subject_attributes.append(NameAttribute(NameOID.EMAIL_ADDRESS, email))
+
         subject_parts = subject.strip('/').split('/')
         for part in subject_parts:
             key, value = part.split('=')
@@ -91,21 +95,46 @@ class SslOps:
             elif key == 'CN':
                 subject_attributes.append(NameAttribute(NameOID.COMMON_NAME, value))
                 self.name = value
+            elif key == 'emailAddress' and not email:
+                subject_attributes.append(NameAttribute(NameOID.EMAIL_ADDRESS, value))
         return Name(subject_attributes)
 
     def __parse_san__(self, cert_san: str):
-        """ Parse the SAN sring into a cryptography subjectAlternateName object """
+        """ Parse the SAN string into a cryptography subjectAlternateName object """
         san_list = []
-        san_parts = cert_san.strip().split(',')
-        for part in san_parts:
-            key, value = part.split(':', 1)
-            if key == 'DNS':
-                san_list.append(x509.DNSName(value))
-            elif key == 'IP':
-                san_list.append(x509.IPAddress(ipaddress.IPv4Address(value)))
-            elif key == 'IPv6':
-                san_list.append(x509.IPAddress(ipaddress.IPv6Address(value)))
+        if cert_san:
+            san_parts = cert_san.strip().split(',')
+            for part in san_parts:
+                key, value = part.split(':', 1)
+                if key == 'DNS':
+                    san_list.append(x509.DNSName(value))
+                elif key == 'IP':
+                    san_list.append(x509.IPAddress(ipaddress.IPv4Address(value)))
+                elif key == 'IPv6':
+                    san_list.append(x509.IPAddress(ipaddress.IPv6Address(value)))
+                elif key == 'email':
+                    san_list.append(x509.RFC822Name(value))
         return san_list
+
+    def __add_key_usage__(self, builder: CertificateBuilder, cert_type: str):
+        """ Add the key usage to the certificate """
+        key_usage = None
+        ext_key_usage = None
+        if cert_type == "ca":
+            key_usage = x509.KeyUsage(digital_signature=False, content_commitment=True, key_encipherment=False,
+                                      data_encipherment=False, key_agreement=False, key_cert_sign=True,
+                                      crl_sign=True, encipher_only=False, decipher_only=False)
+        else:
+            key_usage = x509.KeyUsage(digital_signature=True, content_commitment=False, key_encipherment=True,
+                                      data_encipherment=False, key_agreement=False, key_cert_sign=False,
+                                      crl_sign=False, encipher_only=False, decipher_only=False)
+            ext_key_usage = x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH])
+
+        if key_usage:
+            builder = builder.add_extension(key_usage, critical=True)
+        if ext_key_usage:
+            builder = builder.add_extension(ext_key_usage, critical=False)
+        return builder
 
     def __output_file__(self, filename: str):
         """
@@ -181,7 +210,7 @@ class SslOps:
         # Return the output file name
         return f"{output_file}"
 
-    def create_cert(self, filename: str, cert_subject: str, cert_days: int, sig_algorithm: str, cert_san: str = None, cert_type: str = "crt"):
+    def create_cert(self, filename: str, cert_subject: str, cert_days: int, sig_algorithm: str, cert_email: str = None, cert_san: str = None, cert_type: str = "crt"):
         """ Create TLS Certificates. Self-signed and CA-signed """
         # Define the output file for the certificate
         output_file = self.__output_file__(filename=filename)
@@ -197,7 +226,7 @@ class SslOps:
         # Define the signature algorithm
         sig_algorithm = self.hash_mapping.get(sig_algorithm, hashes.SHA256())
         # Create a subject for the certificate (can be customized)
-        subject = self.__parse_subject__(cert_subject)
+        subject = self.__parse_subject__(subject=cert_subject, email=cert_email)
         # create the valid from and valid to dates
         now = datetime.utcnow().date()
         # Set the valid_from to the current date at 00:00:00
@@ -213,8 +242,6 @@ class SslOps:
         ns_comment_oid = x509.oid.ObjectIdentifier("2.16.840.1.113730.1.13")  # OID for nsComment
         ns_comment_value = f"Created By: {self.app_name} v{self.app_version}".encode('utf-8')
         ns_comment_extension = x509.UnrecognizedExtension(ns_comment_oid, ns_comment_value)
-
-        
 
         # Generate the certificate
         if self.ca_key and self.ca_cert:
@@ -245,9 +272,13 @@ class SslOps:
             ).add_extension(
                 ns_comment_extension, critical=False)
 
+            # Add the SANs to the certificate if they exist
             if san_list:
                 cert_builder = cert_builder.add_extension(
                     SubjectAlternativeName(san_list), critical=False)
+
+            # Add the key usage to the certificate
+            cert_builder = self.__add_key_usage__(builder=cert_builder, cert_type=cert_type)
             signed_cert = cert_builder.sign(private_key=self.ca_key, algorithm=sig_algorithm)
         else:
             self.logger.debug(f"Creating a self-signed certificate")
@@ -258,6 +289,14 @@ class SslOps:
             # Mark the certificate as a CA if that is the type
             if cert_type == "ca":
                 builder = builder.add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+
+            if san_list:
+                builder = builder.add_extension(
+                    SubjectAlternativeName(san_list), critical=False)
+            # Add the key usage to the certificate
+            builder = self.__add_key_usage__(builder=builder, cert_type=cert_type)
+
+            # Add the SANs to the certificate if they exist
             if san_list:
                 builder = builder.add_extension(
                     SubjectAlternativeName(san_list), critical=False)

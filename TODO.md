@@ -1,6 +1,4 @@
 # TODO
 
-## Version 1.0
- - README
- - Create GitHub Workflow for releases
+## Version 1.0.1
  - Add RSA Keys option
