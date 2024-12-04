@@ -1,9 +1,8 @@
 import os
-import sys
 import argparse
 
 # Get the current working directory
-cwd=os.getcwd()
+output_dir = os.path.join(os.getcwd(), 'output')
 
 # A Dictionary that configures all available arguments/configuration
 AllArguments = {
@@ -29,7 +28,7 @@ AllArguments = {
         "output_dir": {
             "args": ['-o', '--output-dir'],
             "type": str,
-            "default": f"{cwd}/output",
+            "default": f"{output_dir}",
             "envvar": "SS_OUTPUT_DIR",
             "help": "Output directory for generated files. (Default: '<CWD>/output')"
         },
