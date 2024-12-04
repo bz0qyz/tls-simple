@@ -1,6 +1,15 @@
 # tls-simple
 Simple TLS Certificate Generator
 
+## Build
+Releases are built using PyInstaller. See the (Releases)[/releases] page for the latest release.
+
+To build the application from source, you can use the `build.sh` script if you are using a bash shell.
+```shell
+./build.sh
+```
+
+
 ## Usage
 The application can be configured using:
 1. Command line arguments
