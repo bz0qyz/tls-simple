@@ -22,6 +22,7 @@ jobs:
           body_path: ${{ github.workspace }}/CHANGELOG.md
           files: |
             README.md
+            tls-simple.ini
           tag_name: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
     outputs:
@@ -42,6 +43,16 @@ jobs:
                 zip -r9 tls-simple-linux-amd64.zip tls-simple;
             OUT_FILE_NAME: tls-simple-linux-amd64.zip
             ASSET_MIME: application/zip
+          - os: [ macos-13 ]
+            TARGET: macos
+            CMD_BUILD: >
+              set -x &&
+              uname -a &&
+              pyinstaller -F -n tls-simple src/__main__.py &&
+              cd dist/ &&
+              zip -r9 tls-simple-macos-amd64.zip tls-simple;
+            OUT_FILE_NAME: tls-simple-macos-amd64.zip
+            ASSET_MIME: application/zip
           - os: [macos-latest]
             TARGET: macos
             CMD_BUILD: >
@@ -49,9 +60,8 @@ jobs:
                 uname -a &&
                 pyinstaller -F -n tls-simple src/__main__.py &&
                 cd dist/ &&
-                zip -r9 tls-simple-macos-amd64.zip tls-simple;
-
-            OUT_FILE_NAME: tls-simple-macos-amd64.zip
+                zip -r9 tls-simple-macos-arm64.zip tls-simple;
+            OUT_FILE_NAME: tls-simple-macos-arm64.zip
             ASSET_MIME: application/zip
           - os: [windows-latest]
             TARGET: windows
