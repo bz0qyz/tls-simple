@@ -20,7 +20,7 @@ The application can be configured using:
 3. An INI configuration file
 
 ```shell
-usage: tls-simple 0.1.0 [-h] [-l info] [-c /path/to/config.ini] [-o /Users/russcook/gitlocal/bz0qyz/tls-simple/output] [-f true|false] [--password-files true|false] [-pfx true|false] [-kf key.pem] [-cf cert.pem]
+usage: tls-simple 0.1.0 [-h] [-l info] [-c /path/to/config.ini] [-o /home/bz0qyz/tls-simple/output] [-f true|false] [--password-files true|false] [-pfx true|false] [-kf key.pem] [-cf cert.pem]
                         [-pf cert.pfx] [-xp <password>] [-kp <password>] [-cd 365] [-csubj /CN=localhost] [-ce admin@domain.com] [--cert-san DNS:localhost,DNS:localhost.localdomain,IP:127.0.0.1,IPv6:fe80::1]
                         [--cert-sig-algo sha512] [--crt-ecc-curve prime256v1] [-cakf ca_key.pem] [-cacf ca_cert.pem] [-cakp <password>] [-cad 365] [-casubj /CN=Example CA] [-cae admin@domain.com]
                         [--ca-sig-algo sha512] [--ca-ecc-curve prime256v1]
@@ -48,8 +48,8 @@ The command line argument takes precedence over the environment variable, which 
                         Log level: info, debug, warning, error, critical. ENV: SS_LOG_LEVEL ini: main.log_level (default: info)
   -c /path/to/config.ini, --config-file /path/to/config.ini
                         Use an unattended configuration file. ENV: SS_CONFIG_FILE ini: main.config_file
-  -o /Users/russcook/gitlocal/bz0qyz/tls-simple/output, --output-dir /Users/russcook/gitlocal/bz0qyz/tls-simple/output
-                        Output directory for generated files. (Default: '<CWD>/output') ENV: SS_OUTPUT_DIR ini: main.output_dir (default: /Users/russcook/gitlocal/bz0qyz/tls-simple/output)
+  -o /home/bz0qyz/tls-simple/output, --output-dir /home/bz0qyz/tls-simple/output
+                        Output directory for generated files. (Default: '<CWD>/output') ENV: SS_OUTPUT_DIR ini: main.output_dir (default: /home/bz0qyz/tls-simple/output)
   -f true|false, --force true|false
                         Force overwrite of existing files. ENV: SS_FORCE ini: main.force (default: False)
   --password-files true|false
