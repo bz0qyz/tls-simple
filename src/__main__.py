@@ -73,9 +73,13 @@ if config.cert.create_pfx:
         final_output.append(f"PFX Container password file: '{pfx_file}.pw'")
 
 # Write Final Output
-columns, lines = os.get_terminal_size()
+try:
+    size = os.get_terminal_size()
+except OSError:
+    size = os.terminal_size((80, 24))
+
 print("\n")
-print("-" * columns)
+print("-" * size.columns)
 for line in final_output:
     print(f" * {line}")
 print("-" * columns)
