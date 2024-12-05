@@ -82,4 +82,4 @@ print("\n")
 print("-" * size.columns)
 for line in final_output:
     print(f" * {line}")
-print("-" * columns)
+print("-" * size.columns)
