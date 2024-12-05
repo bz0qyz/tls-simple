@@ -78,7 +78,8 @@ try:
 except OSError:
     size = os.terminal_size((80, 24))
 
-print("\n")
+print("-" * size.columns)
+print("\n## Certificate Files:")
 print("-" * size.columns)
 for line in final_output:
     print(f" * {line}")
